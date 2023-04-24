@@ -1,26 +1,22 @@
-#include <ESP8266HTTPClient.h>
+#include <HTTPClient.h>
 #include "ArduinoJson.h"
 #include <NTPClient.h>
 #include <WiFiUdp.h>
-//#include <pwmWrite.h>
-#include <ESP8266WiFi.h>
-
+#include <pwmWrite.h>
 
 // Replace 0 by ID of this current device
 const int DEVICE_ID = 124;
-
-WiFiClient client;
 
 int test_delay = 1000; // so we don't spam the API
 boolean describe_tests = true;
 
 // Replace 0.0.0.0 by your server local IP (ipconfig [windows] or ifconfig [Linux o MacOS] gets IP assigned to your PC)
-String serverName = "http://0.0.0.0/";
+String serverName = "http://192.168.1.154/";
 HTTPClient http;
 
 // Replace WifiName and WifiPassword by your WiFi credentials
-#define STASSID "Your_Wifi_SSID"     //"Your_Wifi_SSID"
-#define STAPSK "Your_Wifi_PASSWORD" //"Your_Wifi_PASSWORD"
+#define STASSID "SiempreHomeDomo"     //"Your_Wifi_SSID"
+#define STAPSK "d7?a35D9EnaPepXY?c!4" //"Your_Wifi_PASSWORD"
 
 // NTP (Net time protocol) settings
 WiFiUDP ntpUDP;
@@ -33,7 +29,7 @@ const int actuatorPin = 15;
 const int analogActuatorPin = 16;
 
 // Property initialization for servo movement using PWM signal
-//Pwm pwm = Pwm();
+Pwm pwm = Pwm();
 
 // Setup
 void setup()
@@ -198,7 +194,7 @@ void deserializeSensorsFromDevice(int httpResponseCode)
     Serial.println(httpResponseCode);
     String responseJson = http.getString();
     // allocate the memory for the document
-    DynamicJsonDocument doc(ESP.getMaxFreeBlockSize());
+    DynamicJsonDocument doc(ESP.getMaxAllocHeap());
 
     // parse a JSON array
     DeserializationError error = deserializeJson(doc, responseJson);
@@ -238,7 +234,7 @@ void deserializeActuatorsFromDevice(int httpResponseCode)
     Serial.println(httpResponseCode);
     String responseJson = http.getString();
     // allocate the memory for the document
-    DynamicJsonDocument doc(ESP.getMaxFreeBlockSize());
+    DynamicJsonDocument doc(ESP.getMaxAllocHeap());
 
     // parse a JSON array
     DeserializationError error = deserializeJson(doc, responseJson);
@@ -296,28 +292,28 @@ void GET_tests()
 {
   describe("Test GET full device info");
   String serverPath = serverName + "api/devices/" + String(DEVICE_ID);
-  http.begin(client, serverPath.c_str());
+  http.begin(serverPath.c_str());
   // test_response(http.GET());
   deserializeDeviceBody(http.GET());
 
   describe("Test GET sensors from deviceID");
   serverPath = serverName + "api/devices/" + String(DEVICE_ID) + "/sensors";
-  http.begin(client, serverPath.c_str());
+  http.begin(serverPath.c_str());
   deserializeSensorsFromDevice(http.GET());
 
   describe("Test GET actuators from deviceID");
   serverPath = serverName + "api/devices/" + String(DEVICE_ID) + "/actuators";
-  http.begin(client, serverPath.c_str());
+  http.begin(serverPath.c_str());
   deserializeActuatorsFromDevice(http.GET());
 
   describe("Test GET sensors from deviceID and Type");
   serverPath = serverName + "api/devices/" + String(DEVICE_ID) + "/sensors/Temperature";
-  http.begin(client, serverPath.c_str());
+  http.begin(serverPath.c_str());
   deserializeSensorsFromDevice(http.GET());
 
   describe("Test GET actuators from deviceID");
   serverPath = serverName + "api/devices/" + String(DEVICE_ID) + "/actuators/Relay";
-  http.begin(client, serverPath.c_str());
+  http.begin(serverPath.c_str());
   deserializeActuatorsFromDevice(http.GET());
 }
 
@@ -326,13 +322,13 @@ void POST_tests()
   String actuator_states_body = serializeActuatorStatusBody(random(2000, 4000) / 100, true, 1, millis());
   describe("Test POST with actuator state");
   String serverPath = serverName + "api/actuator_states";
-  http.begin(client, serverPath.c_str());
+  http.begin(serverPath.c_str());
   test_response(http.POST(actuator_states_body));
 
   String sensor_value_body = serializeSensorValueBody(18, millis(), random(2000, 4000) / 100);
   describe("Test POST with sensor value");
   serverPath = serverName + "api/sensor_values";
-  http.begin(client, serverPath.c_str());
+  http.begin(serverPath.c_str());
   test_response(http.POST(sensor_value_body));
 
   //String device_body = serializeDeviceBody(String(DEVICE_ID), ("Name_" + String(DEVICE_ID)).c_str(), ("mqtt_" + String(DEVICE_ID)).c_str(), 12);
@@ -367,7 +363,7 @@ void loop()
   }
 
   // Servo moves from 0 to 180 deg at 140 deg/s with sigmoid motion.
-  //pwm.writeServo(analogActuatorPin, 180, 140.0, 0.6);
+  pwm.writeServo(analogActuatorPin, 180, 140.0, 0.6);
 
   // Reads analog sensor value and print it by serial monitor
   int analogValue = analogRead(analogSensorPin);
