@@ -12,12 +12,12 @@ int test_delay = 1000; // so we don't spam the API
 boolean describe_tests = true;
 
 // Replace 0.0.0.0 by your server local IP (ipconfig [windows] or ifconfig [Linux o MacOS] gets IP assigned to your PC)
-String serverName = "http://0.0.0.0/";
+String serverName = "http://dad.ambc.es/";
 HTTPClient http;
 
 // Replace WifiName and WifiPassword by your WiFi credentials
-#define STASSID "Your_Wifi_SSID"    //"Your_Wifi_SSID"
-#define STAPSK "Your_Wifi_PASSWORD" //"Your_Wifi_PASSWORD"
+#define STASSID "Xiaomi Mi 9_4517"    //"Your_Wifi_SSID"
+#define STAPSK "poiuytrewq" //"Your_Wifi_PASSWORD"
 
 // NTP (Net time protocol) settings
 WiFiUDP ntpUDP;
@@ -28,8 +28,11 @@ WiFiClient client;
 PubSubClient mqttClient(client);
 
 // Server IP, where de MQTT broker is deployed
-const char *MQTT_BROKER_ADRESS = "192.168.1.154";
-const uint16_t MQTT_PORT = 1883;
+const char *MQTT_BROKER_ADRESS = "132.145.238.13";
+const uint16_t MQTT_PORT = 8883;
+const char* mqttUser = "dad";
+const char* mqttPassword = "dadpass";
+
 
 // Name for this MQTT client
 const char *MQTT_CLIENT_NAME = "ArduinoClient_1";
@@ -380,7 +383,7 @@ void POST_tests()
 void ConnectMqtt()
 {
   Serial.print("Starting MQTT connection...");
-  if (mqttClient.connect(MQTT_CLIENT_NAME))
+  if (mqttClient.connect(MQTT_CLIENT_NAME, mqttUser, mqttPassword))
   {
     mqttClient.subscribe("hello/world");
     mqttClient.publish("hello/world", "connected");
